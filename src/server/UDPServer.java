@@ -78,6 +78,20 @@ public class UDPServer {
                     String emailList = getEmailList(username);
                     sendData = emailList.getBytes(); // Gửi danh sách email
                 }
+            }else if ("READ_EMAIL".equals(command)) {
+                if (parts.length < 3) {
+                    sendData = "INVALID_COMMAND".getBytes();
+                } else {
+                    String username = parts[1]; // Tên người dùng
+                    String emailTitle = parts[2]; // Tiêu đề email (tên file)
+
+                    String emailContent = readEmailContent(username, emailTitle);
+                    if (emailContent != null) {
+                        sendData = emailContent.getBytes(); // Gửi nội dung email về client
+                    } else {
+                        sendData = "EMAIL_NOT_FOUND".getBytes(); // Không tìm thấy email
+                    }
+                }
             }else {
                 sendData = "INVALID_COMMAND".getBytes();
             }
@@ -87,6 +101,23 @@ public class UDPServer {
         }
     }
 
+    private static String readEmailContent(String username, String title) {
+        String filePath = MAILS_DIR + username + "/" + title + ".txt"; // Đường dẫn tới file email
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            StringBuilder contentBuilder = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                contentBuilder.append(line).append("\n");
+            }
+            return contentBuilder.toString(); // Trả về nội dung email
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
     private static boolean registerAccount(String username, String password) throws IOException {
         File accountsFile = new File(ACCOUNTS_FILE);
         if (!accountsFile.exists()) {

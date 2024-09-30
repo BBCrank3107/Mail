@@ -53,14 +53,6 @@ public class UDPServer {
                         sendData = "LOGIN_FAILED".getBytes();
                     }
                 }
-            } else if ("GET_EMAILS".equals(command)) {
-                if (parts.length < 2) {
-                    sendData = "INVALID_COMMAND".getBytes();
-                } else {
-                    String username = parts[1];
-                    String emailList = getEmailList(username);
-                    sendData = emailList.getBytes();
-                }
             } else if ("SEND_EMAIL".equals(command)) {
                 if (parts.length < 4) {
                     sendData = "INVALID_COMMAND".getBytes();
@@ -78,7 +70,15 @@ public class UDPServer {
                     saveEmailToFile(from, to, title, content);
                     sendData = "EMAIL_SENT".getBytes(); // Phản hồi cho client
                 }
-            } else {
+            }else if ("GET_EMAILS".equals(command)) {
+                if (parts.length < 2) {
+                    sendData = "INVALID_COMMAND".getBytes();
+                } else {
+                    String username = parts[1];
+                    String emailList = getEmailList(username);
+                    sendData = emailList.getBytes(); // Gửi danh sách email
+                }
+            }else {
                 sendData = "INVALID_COMMAND".getBytes();
             }
 

@@ -123,29 +123,23 @@ public class EmailViewController {
             return;
         }
 
-        // Đọc nội dung từ file email
-        String content = readEmailContent(selectedEmail);
-        if (content != null) {
-            emailContentArea.setText(content); // Hiển thị nội dung trong TextArea
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Error", "Could not read email content.");
-        }
-    }
+        // Gửi yêu cầu đến server để đọc nội dung email
+        try {
+            String request = "READ_EMAIL " + username + " " + selectedEmail; // Yêu cầu đọc email
+            byte[] sendData = request.getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, SERVER_PORT);
+            clientSocket.send(sendPacket);
 
-    private String readEmailContent(String emailName) {
-        String filePath = "mails/" + username + "/" + emailName + ".txt"; // Đường dẫn tới file email
+            // Nhận phản hồi từ server
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            clientSocket.receive(receivePacket);
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            StringBuilder contentBuilder = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                contentBuilder.append(line).append("\n");
-            }
-            return contentBuilder.toString(); // Trả về nội dung email
+            // Hiển thị nội dung email trong TextArea
+            emailContentArea.setText(response);
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
         }
     }
 

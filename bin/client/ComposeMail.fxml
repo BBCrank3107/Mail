@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10" alignment="TOP_CENTER" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ComposeMailController">
+    <children>
+        <Label fx:id="usernameLabel" text="Logged in as: " /> <!-- Label để hiển thị username -->
+        <TextField fx:id="addressField" promptText="Recipient's Address" />
+        <TextField fx:id="titleField" promptText="Email Title" />
+        <TextArea fx:id="contentField" promptText="Email Content" />
+        <Button text="Send" onAction="#handleSend" />
+    </children>
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20" />
+    </padding>
+</VBox>

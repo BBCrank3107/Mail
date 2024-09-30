@@ -19,34 +19,32 @@ public class EmailViewController {
     @FXML
     private ListView<String> emailListView;
     @FXML
-    private Label usernameLabel; // Thêm một Label trong FXML để hiển thị username
+    private Label usernameLabel;
     @FXML
-    private TextField addressField; // TextField để nhập địa chỉ
+    private TextField addressField;
     @FXML
-    private TextField titleField; // TextField để nhập tiêu đề
+    private TextField titleField;
     @FXML
-    private TextArea contentArea; // TextArea để nhập nội dung
+    private TextArea contentArea;
     @FXML
-    private Button sendButton; // Nút gửi
+    private Button sendButton;
 
     private String username;
 
     private DatagramSocket clientSocket;
-    private InetAddress serverAddress;
+    private InetAddress serverAddress; // Giữ nguyên biến này để có thể thiết lập lại
     private final int SERVER_PORT = 9876;
 
     public void initialize() throws Exception {
         clientSocket = new DatagramSocket();
-        serverAddress = InetAddress.getByName("localhost");
+        serverAddress = InetAddress.getByName("192.168.1.18"); // Thay đổi địa chỉ server ở đây
     }
 
-    // Hàm để thiết lập thông tin sau khi đăng nhập thành công
     public void setUsername(String username) {
         this.username = username;
-        usernameLabel.setText("Logged in as: " + username); // Hiển thị username trên giao diện
+        usernameLabel.setText("Logged in as: " + username);
     }
 
-    // Hàm tải danh sách email từ server
     private void loadEmails() throws IOException {
         String message = "GET_EMAILS " + username;
         byte[] sendData = message.getBytes();
@@ -67,19 +65,15 @@ public class EmailViewController {
         }
     }
 
-    // Hàm xử lý khi nhấn nút Soạn Thư (Compose)
     @FXML
     private void handleComposeEmail() {
         try {
-            // Tải tệp FXML cho giao diện Compose Mail
             FXMLLoader loader = new FXMLLoader(getClass().getResource("ComposeMail.fxml"));
             Parent root = loader.load();
 
-            // Lấy controller từ loader
             ComposeMailController composeMailController = loader.getController();
-            composeMailController.setUsername(username); // Gọi setUsername để truyền username
+            composeMailController.setUsername(username);
 
-            // Tạo cửa sổ mới để hiển thị giao diện soạn thư
             Stage stage = new Stage();
             stage.setTitle("Compose Mail");
             stage.setScene(new Scene(root));
@@ -96,12 +90,10 @@ public class EmailViewController {
         String content = contentArea.getText();
 
         if (address.isEmpty() || title.isEmpty() || content.isEmpty()) {
-            // Thông báo nếu thông tin không đầy đủ
             System.out.println("Please fill in all fields.");
             return;
         }
 
-        // Gửi dữ liệu đến server
         sendEmailToServer(username, address, title, content);
     }
     
@@ -111,11 +103,10 @@ public class EmailViewController {
             String message = username + ";" + address + ";" + title + ";" + content;
             byte[] buffer = message.getBytes();
 
-            // Địa chỉ và cổng của server
-            InetAddress serverAddress = InetAddress.getByName("localhost"); // Địa chỉ server
+            // Cập nhật địa chỉ server nếu cần
+            InetAddress serverAddress = InetAddress.getByName("192.168.1.18"); // Địa chỉ server
             int port = 12345; // Cổng server
 
-            // Gửi gói dữ liệu
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, port);
             socket.send(packet);
             socket.close();

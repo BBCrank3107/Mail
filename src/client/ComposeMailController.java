@@ -18,16 +18,17 @@ public class ComposeMailController {
     @FXML
     private TextField addressField; // TextField để nhập địa chỉ người nhận
     @FXML
-    private TextField titleField; // TextField để nhập tiêu đề
+    private TextField titleField; // TextField để nhập tiêu đề email
     @FXML
-    private TextArea contentField; // TextArea để nhập nội dung
+    private TextArea contentField; // TextArea để nhập nội dung email
 
     private String username; // Biến để lưu username
+    private final int SERVER_PORT = 12345; // Port của server
 
     // Thiết lập username
     public void setUsername(String username) {
         this.username = username; // Gán giá trị username cho biến instance
-        usernameLabel.setText("Logged in as: " + username); // Hiển thị username trên giao diện
+        usernameLabel.setText("Logged in as: " + username);
     }
 
     // Xử lý sự kiện khi người dùng nhấn nút "Send"
@@ -40,6 +41,9 @@ public class ComposeMailController {
         if (!address.isEmpty() && !title.isEmpty() && !content.isEmpty()) {
             // Gửi email đến server
             sendEmailToServer(username, address, title, content);
+            
+            // Lưu email thành file trong thư mục người dùng
+            saveEmailToFile(username, address, title, content);
             
             // Đóng cửa sổ Compose sau khi gửi thành công
             Stage stage = (Stage) addressField.getScene().getWindow();
@@ -54,21 +58,18 @@ public class ComposeMailController {
     private void sendEmailToServer(String username, String address, String title, String content) {
         try {
             DatagramSocket socket = new DatagramSocket();
-            String message = username + ";" + address + ";" + title + ";" + content; // Chuỗi tin nhắn
+            
+            // Tạo thông điệp với định dạng SEND_EMAIL
+            String message = "SEND_EMAIL " + username + ";" + address + ";" + title + ";" + content;
             byte[] buffer = message.getBytes();
 
-            // Địa chỉ IP của server
-            InetAddress serverAddress = InetAddress.getByName("192.168.1.18"); // Địa chỉ IP cố định của server
-            int port = 12345; // Cổng server
-
-            // Gửi gói dữ liệu
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, port);
+            // Gửi gói dữ liệu đến server
+            InetAddress serverAddress = InetAddress.getByName("192.168.1.18"); // Địa chỉ IP của server
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, SERVER_PORT);
             socket.send(packet);
             socket.close();
 
-            System.out.println("Email sent successfully.");
-            // Lưu email thành file trong thư mục người dùng
-            saveEmailToFile(username, address, title, content);
+            System.out.println("Email sent successfully to " + address);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -77,17 +78,17 @@ public class ComposeMailController {
     // Lưu email thành file trong thư mục của người dùng
     private void saveEmailToFile(String username, String address, String title, String content) {
         // Đường dẫn lưu email vào thư mục người dùng
-        File userDir = new File("mails/" + address);
+        File userDir = new File("mails/" + address); // Sử dụng username để lưu email
         if (!userDir.exists()) {
             userDir.mkdirs(); // Tạo thư mục nếu chưa tồn tại
         }
 
         File emailFile = new File(userDir, title + ".txt");
         try (FileWriter writer = new FileWriter(emailFile)) {
-            writer.write("From: " + username + "\n"); // Ghi tên người gửi
-            writer.write("To: " + address + "\n"); // Ghi địa chỉ người nhận
-            writer.write("Title: " + title + "\n"); // Ghi tiêu đề
-            writer.write("Content: " + content); // Ghi nội dung
+            writer.write("From: " + username + "\n");
+            writer.write("To: " + address + "\n");
+            writer.write("Title: " + title + "\n");
+            writer.write("Content: " + content);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,7 @@
 package client;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ListView;
@@ -30,10 +32,13 @@ public class EmailViewController {
     private Button sendButton;
 
     private String username;
+    
+    @FXML
+    private TextArea emailContentArea;
 
     private DatagramSocket clientSocket;
     private InetAddress serverAddress; // Giữ nguyên biến này để có thể thiết lập lại
-    private final int SERVER_PORT = 9876;
+    private final int SERVER_PORT = 12345;
 
     public void initialize() throws Exception {
         clientSocket = new DatagramSocket();
@@ -43,26 +48,40 @@ public class EmailViewController {
     public void setUsername(String username) {
         this.username = username;
         usernameLabel.setText("Logged in as: " + username);
+        loadEmailList();
+    }
+    
+    private void loadEmailList() {
+        try {
+            // Gửi yêu cầu lấy danh sách email
+            String request = "GET_EMAILS " + username; // Câu lệnh yêu cầu
+            byte[] sendData = request.getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, SERVER_PORT);
+            clientSocket.send(sendPacket);
+
+            // Nhận phản hồi từ server
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            clientSocket.receive(receivePacket);
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+            // Cập nhật danh sách email vào ListView
+            updateEmailList(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void loadEmails() throws IOException {
-        String message = "GET_EMAILS " + username;
-        byte[] sendData = message.getBytes();
+    private void updateEmailList(String emailList) {
+        ObservableList<String> items = FXCollections.observableArrayList();
 
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, SERVER_PORT);
-        clientSocket.send(sendPacket);
-
-        byte[] receiveData = new byte[1024];
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-        clientSocket.receive(receivePacket);
-        String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
-
-        if ("NO_EMAILS".equals(response)) {
-            showAlert(Alert.AlertType.INFORMATION, "Inbox", "No emails found.");
-        } else {
-            String[] emails = response.split(" ");
-            emailListView.getItems().addAll(emails);
+        for (String email : emailList.split(" ")) {
+            // Bỏ đuôi .txt nếu có
+            String emailName = email.endsWith(".txt") ? email.substring(0, email.length() - 4) : email;
+            items.add(emailName);
         }
+
+        emailListView.setItems(items);
     }
 
     @FXML
@@ -93,27 +112,40 @@ public class EmailViewController {
             System.out.println("Please fill in all fields.");
             return;
         }
-
-        sendEmailToServer(username, address, title, content);
     }
     
-    private void sendEmailToServer(String username, String address, String title, String content) {
-        try {
-            DatagramSocket socket = new DatagramSocket();
-            String message = username + ";" + address + ";" + title + ";" + content;
-            byte[] buffer = message.getBytes();
+    @FXML
+    private void handleSeenEmail() {
+        String selectedEmail = emailListView.getSelectionModel().getSelectedItem();
 
-            // Cập nhật địa chỉ server nếu cần
-            InetAddress serverAddress = InetAddress.getByName("192.168.1.18"); // Địa chỉ server
-            int port = 12345; // Cổng server
+        if (selectedEmail == null) {
+            showAlert(Alert.AlertType.WARNING, "No Email Selected", "Please select an email to view.");
+            return;
+        }
 
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, port);
-            socket.send(packet);
-            socket.close();
+        // Đọc nội dung từ file email
+        String content = readEmailContent(selectedEmail);
+        if (content != null) {
+            emailContentArea.setText(content); // Hiển thị nội dung trong TextArea
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", "Could not read email content.");
+        }
+    }
 
-            System.out.println("Email sent successfully.");
-        } catch (Exception e) {
+    private String readEmailContent(String emailName) {
+        String filePath = "mails/" + username + "/" + emailName + ".txt"; // Đường dẫn tới file email
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            StringBuilder contentBuilder = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                contentBuilder.append(line).append("\n");
+            }
+            return contentBuilder.toString(); // Trả về nội dung email
+        } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
     }
 

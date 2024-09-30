@@ -28,40 +28,56 @@ public class UDPServer {
             String command = parts[0];
 
             if ("REGISTER".equals(command)) {
-                String username = parts[1];
-                String password = parts[2];
-
-                if (registerAccount(username, password)) {
-                    sendData = "REGISTER_SUCCESS".getBytes();
+                if (parts.length < 3) {
+                    sendData = "INVALID_COMMAND".getBytes();
                 } else {
-                    sendData = "REGISTER_FAILED".getBytes();
+                    String username = parts[1];
+                    String password = parts[2];
+
+                    if (registerAccount(username, password)) {
+                        sendData = "REGISTER_SUCCESS".getBytes();
+                    } else {
+                        sendData = "REGISTER_FAILED".getBytes();
+                    }
                 }
             } else if ("LOGIN".equals(command)) {
-                String username = parts[1];
-                String password = parts[2];
-
-                if (checkLogin(username, password)) {
-                    sendData = "LOGIN_SUCCESS".getBytes();
+                if (parts.length < 3) {
+                    sendData = "INVALID_COMMAND".getBytes();
                 } else {
-                    sendData = "LOGIN_FAILED".getBytes();
+                    String username = parts[1];
+                    String password = parts[2];
+
+                    if (checkLogin(username, password)) {
+                        sendData = "LOGIN_SUCCESS".getBytes();
+                    } else {
+                        sendData = "LOGIN_FAILED".getBytes();
+                    }
                 }
             } else if ("GET_EMAILS".equals(command)) {
-                String username = parts[1];
-                String emailList = getEmailList(username);
-                sendData = emailList.getBytes();
-            } else if ("SEND_EMAIL".equals(command)) {
-                String from = parts[1]; // username
-                String to = parts[2]; // address
-                String title = parts[3]; // title
-                StringBuilder contentBuilder = new StringBuilder();
-                for (int i = 4; i < parts.length; i++) {
-                    contentBuilder.append(parts[i]).append(" "); // Duyệt qua các phần từ còn lại để lấy nội dung
+                if (parts.length < 2) {
+                    sendData = "INVALID_COMMAND".getBytes();
+                } else {
+                    String username = parts[1];
+                    String emailList = getEmailList(username);
+                    sendData = emailList.getBytes();
                 }
-                String content = contentBuilder.toString().trim();
+            } else if ("SEND_EMAIL".equals(command)) {
+                if (parts.length < 4) {
+                    sendData = "INVALID_COMMAND".getBytes();
+                } else {
+                    String from = parts[1]; // username
+                    String to = parts[2]; // address
+                    String title = parts[3]; // title
+                    StringBuilder contentBuilder = new StringBuilder();
+                    for (int i = 4; i < parts.length; i++) {
+                        contentBuilder.append(parts[i]).append(" "); // Duyệt qua các phần từ còn lại để lấy nội dung
+                    }
+                    String content = contentBuilder.toString().trim();
 
-                // Ghi thông tin vào file
-                saveEmailToFile(from, to, title, content);
-                sendData = "EMAIL_SENT".getBytes(); // Phản hồi cho client
+                    // Ghi thông tin vào file
+                    saveEmailToFile(from, to, title, content);
+                    sendData = "EMAIL_SENT".getBytes(); // Phản hồi cho client
+                }
             } else {
                 sendData = "INVALID_COMMAND".getBytes();
             }

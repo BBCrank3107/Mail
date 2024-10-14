@@ -7,12 +7,10 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="10" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.EmailViewController">
-    <!-- Hiển thị tên người dùng -->
     <Label fx:id="usernameLabel" text="Logged in as:" />
 
-    <!-- Các thành phần khác của giao diện -->
     <Button text="Compose" onAction="#handleComposeEmail" />
-    <Button text="Seen" onAction="#handleSeenEmail" /> <!-- Nút Seen -->
+    <Button text="Seen" onAction="#handleSeenEmail" />
     <ListView fx:id="emailListView" />
     <TextArea fx:id="emailContentArea" wrapText="true" editable="false" />
 </VBox>

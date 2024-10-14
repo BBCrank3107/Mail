@@ -14,24 +14,23 @@ import java.net.InetAddress;
 
 public class ComposeMailController {
     @FXML
-    private Label usernameLabel; // Label để hiển thị username
+    private Label usernameLabel;
     @FXML
-    private TextField addressField; // TextField để nhập địa chỉ người nhận
+    private TextField addressField;
     @FXML
-    private TextField titleField; // TextField để nhập tiêu đề email
+    private TextField titleField;
     @FXML
-    private TextArea contentField; // TextArea để nhập nội dung email
+    private TextArea contentField;
 
-    private String username; // Biến để lưu username
-    private final int SERVER_PORT = 12345; // Port của server
+    private String username;
+    private final int SERVER_PORT = 12345;
 
     // Thiết lập username
     public void setUsername(String username) {
-        this.username = username; // Gán giá trị username cho biến instance
+        this.username = username;
         usernameLabel.setText("Logged in as: " + username);
     }
-
-    // Xử lý sự kiện khi người dùng nhấn nút "Send"
+    
     @FXML
     private void handleSend() {
         String address = addressField.getText();
@@ -39,32 +38,25 @@ public class ComposeMailController {
         String content = contentField.getText();
 
         if (!address.isEmpty() && !title.isEmpty() && !content.isEmpty()) {
-            // Gửi email đến server
             sendEmailToServer(username, address, title, content);
             
-            // Lưu email thành file trong thư mục người dùng
             saveEmailToFile(username, address, title, content);
-            
-            // Đóng cửa sổ Compose sau khi gửi thành công
+
             Stage stage = (Stage) addressField.getScene().getWindow();
             stage.close();
         } else {
-            // Thông báo nếu thông tin không đầy đủ
             System.out.println("Please fill in all fields.");
         }
     }
 
-    // Gửi email đến server
     private void sendEmailToServer(String username, String address, String title, String content) {
         try {
             DatagramSocket socket = new DatagramSocket();
             
-            // Tạo thông điệp với định dạng SEND_EMAIL
             String message = "SEND_EMAIL " + username + ";" + address + ";" + title + ";" + content;
             byte[] buffer = message.getBytes();
 
-            // Gửi gói dữ liệu đến server
-            InetAddress serverAddress = InetAddress.getByName("192.168.1.18"); // Địa chỉ IP của server
+            InetAddress serverAddress = InetAddress.getByName("192.168.1.18");
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, SERVER_PORT);
             socket.send(packet);
             socket.close();
@@ -75,12 +67,10 @@ public class ComposeMailController {
         }
     }
 
-    // Lưu email thành file trong thư mục của người dùng
     private void saveEmailToFile(String username, String address, String title, String content) {
-        // Đường dẫn lưu email vào thư mục người dùng
-        File userDir = new File("mails/" + address); // Sử dụng username để lưu email
+        File userDir = new File("mails/" + address);
         if (!userDir.exists()) {
-            userDir.mkdirs(); // Tạo thư mục nếu chưa tồn tại
+            userDir.mkdirs();
         }
 
         File emailFile = new File(userDir, title + ".txt");

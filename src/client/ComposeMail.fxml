@@ -9,7 +9,7 @@
 
 <VBox spacing="10" alignment="TOP_CENTER" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.ComposeMailController">
     <children>
-        <Label fx:id="usernameLabel" text="Logged in as: " /> <!-- Label để hiển thị username -->
+        <Label fx:id="usernameLabel" text="Logged in as: " />
         <TextField fx:id="addressField" promptText="Recipient's Address" />
         <TextField fx:id="titleField" promptText="Email Title" />
         <TextArea fx:id="contentField" promptText="Email Content" />

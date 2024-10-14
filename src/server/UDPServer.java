@@ -62,11 +62,10 @@ public class UDPServer {
                     String title = parts[3]; // title
                     StringBuilder contentBuilder = new StringBuilder();
                     for (int i = 4; i < parts.length; i++) {
-                        contentBuilder.append(parts[i]).append(" "); // Duyệt qua các phần từ còn lại để lấy nội dung
+                        contentBuilder.append(parts[i]).append(" ");
                     }
                     String content = contentBuilder.toString().trim();
 
-                    // Ghi thông tin vào file
                     saveEmailToFile(from, to, title, content);
                     sendData = "EMAIL_SENT".getBytes(); // Phản hồi cho client
                 }
@@ -76,20 +75,20 @@ public class UDPServer {
                 } else {
                     String username = parts[1];
                     String emailList = getEmailList(username);
-                    sendData = emailList.getBytes(); // Gửi danh sách email
+                    sendData = emailList.getBytes();
                 }
             }else if ("READ_EMAIL".equals(command)) {
                 if (parts.length < 3) {
                     sendData = "INVALID_COMMAND".getBytes();
                 } else {
-                    String username = parts[1]; // Tên người dùng
-                    String emailTitle = parts[2]; // Tiêu đề email (tên file)
+                    String username = parts[1];
+                    String emailTitle = parts[2];
 
                     String emailContent = readEmailContent(username, emailTitle);
                     if (emailContent != null) {
-                        sendData = emailContent.getBytes(); // Gửi nội dung email về client
+                        sendData = emailContent.getBytes();
                     } else {
-                        sendData = "EMAIL_NOT_FOUND".getBytes(); // Không tìm thấy email
+                        sendData = "EMAIL_NOT_FOUND".getBytes();
                     }
                 }
             }else {
@@ -102,7 +101,7 @@ public class UDPServer {
     }
 
     private static String readEmailContent(String username, String title) {
-        String filePath = MAILS_DIR + username + "/" + title + ".txt"; // Đường dẫn tới file email
+        String filePath = MAILS_DIR + username + "/" + title + ".txt";
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             StringBuilder contentBuilder = new StringBuilder();
@@ -111,7 +110,7 @@ public class UDPServer {
             while ((line = reader.readLine()) != null) {
                 contentBuilder.append(line).append("\n");
             }
-            return contentBuilder.toString(); // Trả về nội dung email
+            return contentBuilder.toString();
         } catch (IOException e) {
             e.printStackTrace();
             return null;

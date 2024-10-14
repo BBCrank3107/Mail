@@ -37,12 +37,12 @@ public class EmailViewController {
     private TextArea emailContentArea;
 
     private DatagramSocket clientSocket;
-    private InetAddress serverAddress; // Giữ nguyên biến này để có thể thiết lập lại
+    private InetAddress serverAddress;
     private final int SERVER_PORT = 12345;
 
     public void initialize() throws Exception {
         clientSocket = new DatagramSocket();
-        serverAddress = InetAddress.getByName("192.168.1.18"); // Thay đổi địa chỉ server ở đây
+        serverAddress = InetAddress.getByName("192.168.1.18");
     }
 
     public void setUsername(String username) {
@@ -53,19 +53,16 @@ public class EmailViewController {
     
     private void loadEmailList() {
         try {
-            // Gửi yêu cầu lấy danh sách email
-            String request = "GET_EMAILS " + username; // Câu lệnh yêu cầu
+            String request = "GET_EMAILS " + username;
             byte[] sendData = request.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, SERVER_PORT);
             clientSocket.send(sendPacket);
 
-            // Nhận phản hồi từ server
             byte[] receiveData = new byte[1024];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             clientSocket.receive(receivePacket);
             String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
-            // Cập nhật danh sách email vào ListView
             updateEmailList(response);
         } catch (IOException e) {
             e.printStackTrace();
@@ -76,7 +73,6 @@ public class EmailViewController {
         ObservableList<String> items = FXCollections.observableArrayList();
 
         for (String email : emailList.split(" ")) {
-            // Bỏ đuôi .txt nếu có
             String emailName = email.endsWith(".txt") ? email.substring(0, email.length() - 4) : email;
             items.add(emailName);
         }
@@ -123,20 +119,17 @@ public class EmailViewController {
             return;
         }
 
-        // Gửi yêu cầu đến server để đọc nội dung email
         try {
-            String request = "READ_EMAIL " + username + " " + selectedEmail; // Yêu cầu đọc email
+            String request = "READ_EMAIL " + username + " " + selectedEmail;
             byte[] sendData = request.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, SERVER_PORT);
             clientSocket.send(sendPacket);
 
-            // Nhận phản hồi từ server
             byte[] receiveData = new byte[1024];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             clientSocket.receive(receivePacket);
             String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
-            // Hiển thị nội dung email trong TextArea
             emailContentArea.setText(response);
         } catch (IOException e) {
             e.printStackTrace();
